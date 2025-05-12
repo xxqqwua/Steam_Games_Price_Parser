@@ -1,3 +1,5 @@
+import asyncio
+
 import aiohttp
 
 
@@ -48,8 +50,9 @@ class SteamPriceParser:
         }
 
         self.prices = {}
+        self.all_steam_games_url = 'https://api.steampowered.com/ISteamApps/GetAppList/v2/'
 
-    async def check_price(self, app_id, regions='all'):
+    async def check_game_price(self, app_id, regions='all'):
         if regions == 'all' or regions == '':
             iterator = self.regions.items()
         else:
@@ -91,8 +94,21 @@ class SteamPriceParser:
                             current_price = price['final_formatted']
                             self.prices[region] = current_price
                         else:
-                            self.prices[region] = "Unable to find a price"
+                            self.prices[region] = "N/A"
                             continue
 
                 except Exception as e:
                     raise RuntimeError(f"Error during region processing {cc}: {e}")
+
+    async def check_game_name_by_app_id(self, app_id):
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(self.all_steam_games_url) as r:
+                    raw = await r.json()
+                    apps = raw['applist']['apps']
+                    for app in apps:
+                        if app['appid'] == app_id:
+                            return app['name']
+                    return None
+            except Exception as e:
+                raise RuntimeError(f"Error when checking game name processing: {e}")
