@@ -49,6 +49,7 @@ class SteamPriceParser:
 
         self.all_steam_games_url = 'https://api.steampowered.com/ISteamApps/GetAppList/v2/'
         self.all_games = None
+        self.proxy = None
 
     async def check_game_price(self, app_id, regions='all'):
         prices = {}
@@ -77,7 +78,7 @@ class SteamPriceParser:
                 url = f"https://store.steampowered.com/api/appdetails?appids={app_id}&cc={cc}&l=en"
 
                 try:
-                    async with session.get(url) as r:
+                    async with session.get(url, proxy=self.proxy) as r:
                         raw = await r.json()
                         is_aviable = raw[str(app_id)]['success']
 
@@ -105,7 +106,7 @@ class SteamPriceParser:
 
     async def check_game_name_by_app_id(self, app_id):
         if self.all_games is None:
-            self.all_games = await checker(self.all_steam_games_url)
+            self.all_games = await checker(self.all_steam_games_url, proxy=self.proxy)
 
             apps = self.all_games['applist']['apps']
             for app in apps:
@@ -119,7 +120,7 @@ class SteamPriceParser:
         Some games have a different name than the one displayed on the Steam website
         """
         if self.all_games is None:
-            self.all_games = await checker(self.all_steam_games_url)
+            self.all_games = await checker(self.all_steam_games_url, proxy=self.proxy)
 
         apps = self.all_games['applist']['apps']
         for app in apps:
@@ -128,10 +129,10 @@ class SteamPriceParser:
         return None
 
 
-async def checker(url):
+async def checker(url, proxy=None):
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120)) as session:
         try:
-            async with session.get(url) as r:
+            async with session.get(url, proxy=proxy) as r:
                 raw = await r.json()
                 return raw
 
