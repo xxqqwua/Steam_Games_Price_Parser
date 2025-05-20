@@ -149,24 +149,26 @@ class SteamGamePriceParser:
         if self.all_games is None:
             self.all_games = await checker(self.all_steam_games_url, proxy=self.proxy)
 
-        games = self.all_games['applist']['apps']
+        seen_appids = set()
+        games = []
+
+        for app in self.all_games['applist']['apps']:
+            if app['appid'] not in seen_appids:
+                games.append(app)
+                seen_appids.add(app['appid'])
+
         user_game_name = game_name.lower()
-        filter_words = self.filter[:]
+        filter_words = [word for word in self.filter if word not in game_name.lower()]
         threshold = 90
 
         for game in games:
             steam_game_name = game['name'].lower()
-
-            for filter_word in filter_words:
-                if filter_word in user_game_name:
-                    filter_words.remove(filter_word)
 
             if any(ban_word in steam_game_name for ban_word in filter_words):
                 continue
 
             score = fuzz.token_sort_ratio(steam_game_name, user_game_name)
             if score >= threshold:
-                print(f'{steam_game_name} ~> {user_game_name} (score: {score})')
                 return game['appid']
         return None
 
