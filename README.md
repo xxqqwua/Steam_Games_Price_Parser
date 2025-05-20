@@ -8,6 +8,7 @@ desc
 - [Features](#Features)
 - [Installation](#Installation)
 - [Usage](#Usage)
+- [Req](#Req)
 
 
 ## Features:
@@ -15,7 +16,10 @@ desc
 - Asynchrony, all actions are asynchronous
 - Optimization, no repetitive requests to the server
 - Proxy support
+- Support for different data types
 
+## Req:
+On Windows the Visual C++ 2019 redistributable is required
 
 ## Installation:
 

@@ -1,8 +1,9 @@
 import aiohttp
+from rapidfuzz import fuzz
 
 
 class SteamPriceParser:
-    def __init__(self):
+    def __init__(self, proxy=None):
         self.regions = {
             'us': 'U.S. Dollar',
             'ca': 'Canadian Dollar',
@@ -46,10 +47,35 @@ class SteamPriceParser:
             'ae': 'U.A.E. Dirham',
             'il': 'Israeli New Shekel'
         }
+        self.filter = [  # You can add additional words to filter the data
+            'soundtrack',
+            'sound track',
+            'art book',
+            'ost',
+            'demo',
+            'dlc',
+            'trailer',
+            'beta',
+            'test',
+            'editor',
+            'tool',
+            'server',
+            'mod',
+            'expansion',
+            'pack',
+            'bundle',
+            'manual',
+            'guide',
+            'wallpaper',
+            'sketchbook',
+            'sound',
+            'pass',
+            ' -',  # Some dlc's are labeled with a '-' after the name of the game
+        ]
 
         self.all_steam_games_url = 'https://api.steampowered.com/ISteamApps/GetAppList/v2/'
         self.all_games = None
-        self.proxy = None
+        self.proxy = proxy
 
     async def check_game_price(self, app_id, regions='all'):
         prices = {}
@@ -122,10 +148,28 @@ class SteamPriceParser:
         if self.all_games is None:
             self.all_games = await checker(self.all_steam_games_url, proxy=self.proxy)
 
-        apps = self.all_games['applist']['apps']
-        for app in apps:
-            if app['name'].lower() == game_name.lower():
-                return app['appid']
+        games = self.all_games['applist']['apps']
+        user_game_name = game_name.lower()
+        filter_words = self.filter[:]
+        threshold = 85
+
+        for game in games:
+            steam_game_name = game['name'].lower()
+
+            for filter_word in filter_words:
+                if filter_word in user_game_name:
+                    filter_words.remove(filter_word)
+
+            if any(ban_word in steam_game_name for ban_word in filter_words):
+                continue
+
+            score = fuzz.token_sort_ratio(steam_game_name, user_game_name)
+            if score >= threshold:
+                print(f'{steam_game_name} ~> {user_game_name} (score: {score})')
+                return game['appid']
+            elif steam_game_name == user_game_name or user_game_name in steam_game_name:
+                print(f'{steam_game_name} -> {user_game_name}')
+                return game['appid']
         return None
 
 
