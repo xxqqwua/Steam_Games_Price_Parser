@@ -44,9 +44,9 @@ To implement this script in your project, you can follow a similar approach as s
 ```python
 import asyncio
 
-from steam_price_parser import SteamPriceParser
+from SteamGamePriceParser import SteamGamePriceParser
 
-s = SteamPriceParser()
+s = SteamGamePriceParser()
 
 
 async def main():

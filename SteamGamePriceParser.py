@@ -2,7 +2,7 @@ import aiohttp
 from rapidfuzz import fuzz
 
 
-class SteamPriceParser:
+class SteamGamePriceParser:
     def __init__(self, proxy=None):
         self.regions = {
             'us': 'U.S. Dollar',
@@ -71,6 +71,7 @@ class SteamPriceParser:
             'sound',
             'pass',
             ' -',  # Some dlc's are labeled with a '-' after the name of the game
+            'edition'
         ]
 
         self.all_steam_games_url = 'https://api.steampowered.com/ISteamApps/GetAppList/v2/'
@@ -151,7 +152,7 @@ class SteamPriceParser:
         games = self.all_games['applist']['apps']
         user_game_name = game_name.lower()
         filter_words = self.filter[:]
-        threshold = 85
+        threshold = 90
 
         for game in games:
             steam_game_name = game['name'].lower()
@@ -166,9 +167,6 @@ class SteamPriceParser:
             score = fuzz.token_sort_ratio(steam_game_name, user_game_name)
             if score >= threshold:
                 print(f'{steam_game_name} ~> {user_game_name} (score: {score})')
-                return game['appid']
-            elif steam_game_name == user_game_name or user_game_name in steam_game_name:
-                print(f'{steam_game_name} -> {user_game_name}')
                 return game['appid']
         return None
 
