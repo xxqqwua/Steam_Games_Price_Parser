@@ -88,13 +88,13 @@ class SteamGamePriceParser:
                 # If regions is a string, split it by comma and remove spaces around each code.
                 # The split(‘,’) method splits the string into substrings, and strip() removes extra spaces.
                 region_codes = [code.strip() for code in regions.split(',')]
-            elif isinstance(regions, list):
-                region_codes = regions  # If regions is a list, just use it as is.
+            elif isinstance(regions, list) or isinstance(regions, tuple):
+                region_codes = regions  # If regions is a list or tuple, just use it as is.
             elif isinstance(regions, dict):
                 region_codes = regions.keys()  # If regions is a dictionary, iterate over its keys.
             else:
                 raise ValueError(
-                    f"Unsupported region type: {type(regions).__name__}")  # If regions is not a string or a list, throw an error.
+                    f"Unsupported 'regions' type: {type(regions).__name__}")  # If regions is not a string or a list, throw an error.
 
             # Create an iterator that will return pairs (country code, name).
             # self.regions.get() safely gets the country name by code, returning ‘Unknown (code)’ if no code is found.
@@ -127,7 +127,6 @@ class SteamGamePriceParser:
 
                 except Exception as e:
                     return None, f"Error during region processing. Region: '{cc}'. Error: {e}"
-                    # raise RuntimeError(f"Error during region processing {cc}: {e}")
 
         return prices
 
